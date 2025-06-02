@@ -4,7 +4,7 @@ Ce projet est une API REST simple développée avec Flask pour gérer une collec
 
 ## 🌐 URLs des services
 
-- **Frontend** : [http://localhost:3000](http://localhost:3000)
+- **Frontend** : [http://localhost:5173](http://localhost:5173)
 
 > **Note :** L'API backend n'est pas accessible directement sur le port 5009. Utilisez les routes API listées ci-dessous pour interagir avec le backend.
 
