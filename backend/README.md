@@ -2,6 +2,12 @@
 
 Ce projet est une API REST simple développée avec Flask pour gérer une collection de livres, utilisant PostgreSQL comme base de données et Docker pour faciliter la gestion des environnements.
 
+## 🌐 URLs des services
+
+- **Frontend** : [http://localhost:3000](http://localhost:3000)
+
+> **Note :** L'API backend n'est pas accessible directement sur le port 5009. Utilisez les routes API listées ci-dessous pour interagir avec le backend.
+
 ---
 
 ## 🚀 Installation & Exécution
@@ -29,67 +35,69 @@ git clone git@github.com:esperluet/esme_webservice_flask.git
 cd esme_webservice_flask
 ```
 
-#### 2️⃣ Construire et démarrer l’application avec Docker
+#### 2️⃣ Démarrer l'application avec Docker Compose
 ```bash
-make docker-build
+docker-compose up --build
 ```
 
-L'API sera accessible sur [http://localhost:5009](http://localhost:5009).
-
-> **Note :** Si vous souhaitez uniquement démarrer l'application sans reconstruire l'image Docker :
+> **Note :** Pour arrêter l'application :
 > ```bash
-> make docker-up
+> docker-compose down
 > ```
 
-### 🐳 Pour arrêter l’application
-```bash
-make docker-down
-```
+### 👥 Comptes utilisateurs de test
 
-> 📦 **Persistance des données** : Les données PostgreSQL sont stockées dans un volume Docker nommé `postgres_data`. Elles sont donc conservées même après l'arrêt ou la suppression du conteneur.
-> 
-> De plus, les fichiers de migration Alembic sont synchronisés avec le dossier local `./migrations/`, ce qui permet de conserver l'historique des migrations et de les versionner dans Git.
+| Email | Mot de passe | Rôle |
+|-------|--------------|------|
+| `admin@esme.fr` | `admin123` | Administrateur |
+| `user1@esme.fr` | `user123` | Étudiant |
+| `user2@esme.fr` | `user123` | Étudiant |
+
+> **Note :** Pour créer un nouveau compte, utilisez l'endpoint `POST /api/users` avec un email et un mot de passe.
 
 ---
 
-## 📚 API Endpoints
+## 📚 Routes API principales
 
-### 🔹 Récupérer tous les livres
+### 🔐 Authentification
 ```http
-GET /books
-```
-
-### 🔹 Ajouter un livre
-```http
-POST /books
+POST /api/users/login
 Content-Type: application/json
 
 {
-  "title": "Le Petit Prince",
-  "author": "Antoine de Saint-Exupéry",
-  "published_at": "1943-04-06"
+  "email": "user1@esme.fr",
+  "password": "user123"
 }
 ```
+> **Note :** Ajoutez le token JWT reçu dans l'en-tête `Authorization: Bearer <token>` pour les requêtes suivantes.
 
-### 🔹 Récupérer un livre spécifique
+### 📖 Gestion des livres
 ```http
-GET /books/<book_id>
+GET /books                    # Liste tous les livres
+POST /books                   # Ajoute un livre
+GET /books/<book_id>          # Détails d'un livre
+PUT /books/<book_id>          # Met à jour un livre
+DELETE /books/<book_id>       # Supprime un livre
 ```
 
-### 🔹 Mettre à jour un livre
+### 📚 Emprunts
 ```http
-PUT /books/<book_id>
-Content-Type: application/json
-
-{
-  "title": "Le Petit Prince (Édition spéciale)",
-  "published_at": "1943-04-07"
-}
+POST /api/borrowings/<book_id>           # Emprunte un livre
+PUT /api/borrowings/<borrowing_id>/return # Retourne un livre
+GET /api/borrowings/late                 # Liste les retards
+GET /api/borrowings/status/<book_id>     # Vérifie le statut d'un livre
 ```
 
-### 🔹 Supprimer un livre
+### 📝 Réservations
 ```http
-DELETE /books/<book_id>
+POST /api/reservations/<book_id>         # Réserve un livre
+GET /api/reservations/me                 # Liste mes réservations
+GET /api/reservations/book/<book_id>     # Liste les réservations d'un livre
+```
+
+### 🔔 Notifications
+```http
+GET /api/notifications/me                # Liste les livres disponibles
 ```
 
 ---
@@ -98,15 +106,9 @@ DELETE /books/<book_id>
 
 | Commande             | Description                                              |
 |----------------------|----------------------------------------------------------|
-| `make docker-build`  | Construit et démarre les conteneurs Docker               |
-| `make docker-up`     | Démarre les conteneurs existants                         |
-| `make docker-down`   | Arrête et supprime les conteneurs                        |
-| `make docker-clean`  | Nettoie les images Docker inutilisées                    |
-| `make db-init`       | Initialise la base de données (crée les tables)          |
-| `make db-migrate`    | Crée une migration à partir des modifications du modèle  |
-| `make db-upgrade`    | Applique les migrations à la base de données             |
-| `make db-reset`      | Réinitialise complètement la base de données             |
-| `make help`          | Affiche toutes les commandes disponibles                 |
+| `docker-compose up --build` | Construit et démarre les conteneurs Docker        |
+| `docker-compose down` | Arrête et supprime les conteneurs                        |
+| `docker-compose logs -f` | Affiche les logs en temps réel                    |
 
 ---
 
@@ -115,12 +117,12 @@ DELETE /books/<book_id>
 - **Flask** : Framework web en Python pour la création de l'API REST.
 - **PostgreSQL** : Base de données relationnelle pour le stockage des livres.
 - **Docker & Docker Compose** : Gestion des environnements et conteneurisation.
-- **Makefile** : Automatisation des commandes et simplification des tâches.
+- **JWT** : Authentification sécurisée avec JSON Web Tokens.
 
 ---
 
-## ❗ Conseils supplémentaires pour les utilisateurs Windows
+## ❗ Conseils supplémentaires
 
-- Si la commande `make` n’est pas reconnue, ajoutez manuellement le dossier contenant `make.exe` à votre variable d’environnement `PATH`.
-- Il est recommandé d’utiliser Git Bash, PowerShell ou WSL pour éviter les problèmes liés aux chemins ou à l'encodage des commandes dans le terminal.
-- En cas d’erreur lors de l’exécution des commandes Makefile, vérifiez que Docker est bien lancé et que les conteneurs sont en cours d’exécution (`make docker-up`).
+- Assurez-vous que Docker Desktop est en cours d'exécution avant de lancer les commandes.
+- Pour tester les endpoints protégés, n'oubliez pas d'inclure le token JWT dans l'en-tête `Authorization`.
+- Les données sont persistantes grâce au volume Docker `postgres_data`.
