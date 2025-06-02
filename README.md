@@ -4,56 +4,56 @@ Une application moderne de gestion de bibliothèque universitaire permettant aux
 
 ## 🌐 URLs des services
 
-- *Frontend* : [http://localhost:5173](http://localhost:5173)
-- *Backend API* : [http://localhost:5009](http://localhost:5009)
+- **Frontend** : [http://localhost:5173](http://localhost:5173)
+- **Backend API** : [http://localhost:5009](http://localhost:5009)
 
-> *Note :* Le backend n'est pas accessible directement sur le port 5009. Utilisez les routes API listées ci-dessous.
+> **Note :** Le backend n'est pas accessible directement sur le port 5009. Utilisez les routes API listées ci-dessous.
 
 ## 💾 Base de données PostgreSQL
 
-- *Hôte* : localhost
-- *Port* : 5432
-- *Utilisateur* : myuser
-- *Mot de passe* : mot_de_passe
-- *Base* : esme_inge
+- **Hôte** : localhost
+- **Port** : 5432
+- **Utilisateur** : myuser
+- **Mot de passe** : mot_de_passe
+- **Base** : esme_inge
 
 ## 🌟 Fonctionnalités principales
 
-- *Gestion des emprunts* : Emprunt et retour de livres avec suivi automatique des retards
-- *Système de réservation* : File d'attente FIFO pour les livres indisponibles
-- *Notifications* : Alertes automatiques quand un livre réservé devient disponible
-- *Sécurité* : Authentification JWT pour protéger les routes sensibles
+- **Gestion des emprunts** : Emprunt et retour de livres avec suivi automatique des retards
+- **Système de réservation** : File d'attente FIFO pour les livres indisponibles
+- **Notifications** : Alertes automatiques quand un livre réservé devient disponible
+- **Sécurité** : Authentification JWT pour protéger les routes sensibles
 
 ## 🚀 Installation
 
-bash
+```bash
 # Démarrer l'application
 docker-compose up --build
 
 # Arrêter l'application
 docker-compose down
-
+```
 
 ## 👥 Comptes de test
 
 | Email | ID |
 |-------|----|
-| dilshan@example.com | 1 |
-| paul@example.com | 2 |
+| `dilshan@example.com` | 1 |
+| `paul@example.com` | 2 |
 
 ## 📚 Guide d'utilisation de l'API
 
 ### 1. Authentification
-http
+```http
 POST /api/users/login
 {
   "email": "user1@esme.fr"
 }
-
+```
 > Conservez le token JWT reçu pour les requêtes suivantes
 
 ### 2. Gestion des livres
-http
+```http
 # Lister tous les livres disponibles
 GET /books
 
@@ -66,10 +66,10 @@ POST /books
 
 # Voir les détails d'un livre
 GET /books/<id>
-
+```
 
 ### 3. Emprunts et retours
-http
+```http
 # Emprunter un livre
 POST /api/borrowings/<id>
 
@@ -78,10 +78,10 @@ PUT /api/borrowings/<id>/return
 
 # Vérifier les retards
 GET /api/borrowings/late
-
+```
 
 ### 4. Réservations
-http
+```http
 # Réserver un livre indisponible
 POST /api/reservations/<id>
 
@@ -90,18 +90,18 @@ GET /api/reservations/me
 
 # Voir la liste d'attente d'un livre
 GET /api/reservations/book/<id>
-
+```
 
 ### 5. Notifications
-http
+```http
 # Voir les livres disponibles
 GET /api/notifications/me
-
+```
 
 ## 🔒 Sécurité
 
 - Toutes les routes (sauf login) nécessitent un token JWT
-- Ajoutez l'en-tête Authorization: Bearer <token> à vos requêtes
+- Ajoutez l'en-tête `Authorization: Bearer <token>` à vos requêtes
 - Les utilisateurs ne peuvent voir que leurs propres données
 
 ## 💡 Exemple de workflow
@@ -115,7 +115,7 @@ GET /api/notifications/me
 
 ## 🛠 Technologies utilisées
 
-- *Backend* : Flask (Python)
-- *Base de données* : PostgreSQL
-- *Authentification* : JWT
-- *Conteneurisation* : Docker
+- **Backend** : Flask (Python)
+- **Base de données** : PostgreSQL
+- **Authentification** : JWT
+- **Conteneurisation** : Docker
