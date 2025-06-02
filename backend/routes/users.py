@@ -5,9 +5,9 @@ from datetime import datetime
 # Importer les fonctions JWT nécessaires
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
-users_bp = Blueprint("users", __name__)
+users_bp = Blueprint("users", __name__, url_prefix="/api/users")
 
-@users_bp.route("/api/users", methods=["POST"])
+@users_bp.route("", methods=["POST"])
 def create_user():
     data = request.get_json()
     if not data or not all(k in data for k in ("email", "first_name", "last_name")):
@@ -30,8 +30,19 @@ def create_user():
     db.session.commit()
     return jsonify({"id": user.id, "message": "Utilisateur créé"}), 201
 
+@users_bp.route("", methods=['GET'])
+def list_users():
+    users = Student.query.all()
+    return jsonify([{
+        "id": user.id,
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "birth_date": user.birth_date.strftime('%Y-%m-%d') if user.birth_date else None
+    } for user in users])
+
 # Endpoint de login (simulation simple par email)
-@users_bp.route("/api/login", methods=["POST"])
+@users_bp.route("/login", methods=["POST"])
 def login():
     email = request.json.get("email", None)
     password = request.json.get("password", None)
@@ -46,6 +57,6 @@ def login():
     if user: # and user.check_password(password):
         # Créer le token d'accès. L'identité du token est l'ID de l'utilisateur
         access_token = create_access_token(identity=str(user.id))
-        return jsonify(access_token=access_token)
+        return jsonify(access_token=access_token, user_id=user.id)
     else:
         return jsonify({"msg": "Mauvais email ou mot de passe"}), 401 

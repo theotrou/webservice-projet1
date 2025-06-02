@@ -8,9 +8,12 @@ from routes.borrowings import borrowings_bp
 from routes.users import users_bp
 from routes.notifications import notifications_bp
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+CORS(app)
 
 db.init_app(app)
 migrate = Migrate(app, db)

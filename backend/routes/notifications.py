@@ -1,10 +1,8 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import Book, Borrowing
-from sqlalchemy import not_
 
-from .. import db
-from ..models import Student
+from models import Book, Borrowing, Student
+from sqlalchemy import not_
 
 notifications_bp = Blueprint("notifications", __name__, url_prefix='/api/notifications')
 

@@ -115,39 +115,32 @@ def get_late_borrowings():
         Borrowing.borrowed_at < fourteen_days_ago # Emprunté il y a plus de 14 jours
     )
 
-    # --- Utiliser get_jwt_identity() si aucun user_id n'est fourni en paramètre --- et commenter l'ancien code
+    # --- Utiliser get_jwt_identity() si aucun user_id n\'est fourni en paramètre ---
     requested_user_id = request.args.get("user_id")
+    user_id_to_filter = None
+
     if requested_user_id:
-        # S'assurer que user_id est un entier si nécessaire, ou gérer l'erreur
+        # Si user_id est fourni dans la requête, l\'utiliser
         try:
             user_id_to_filter = int(requested_user_id)
         except ValueError:
             return jsonify({"error": "user_id doit être un entier"}), 400
-    else:\n        # Utiliser l'ID de l'utilisateur authentifié si user_id n'est pas fourni
-        user_id_to_filter = get_jwt_identity()
+    else:
+        # Si user_id n\'est pas fourni, utiliser l\'ID de l\'utilisateur authentifié
+        current_user_id_str = get_jwt_identity()
         try:
-            # Assurez-vous que l'identité est un entier, car nos IDs sont des entiers
-            user_id_to_filter = int(user_id_to_filter)
+            # Assurez-vous que l\'identité est un entier
+            user_id_to_filter = int(current_user_id_str)
         except ValueError:
-             return jsonify({"error": "L'identité JWT n'est pas un ID utilisateur valide"}), 400
+             return jsonify({"error": "L\'identité JWT n\'est pas un ID utilisateur valide"}), 400
 
+    # Appliquer le filtre par user_id (soit celui de la requête, soit celui du token)
     query = query.filter(Borrowing.user_id == user_id_to_filter)
-
-    # Ancienne logique de filtrage commentée/supprimée:
-    # user_id = request.args.get("user_id")
-    # if user_id:
-    #     try:
-    #         user_id = int(user_id)
-    #         query = query.filter(Borrowing.user_id == user_id)
-    #     except ValueError:
-    #         return jsonify({"error": "user_id doit être un entier"}), 400
-
-    # --------------------------------------------------------------
 
     # Exécuter la requête filtrée
     late_borrowings = query.all()
 
-    # TODO: Récupérer les infos du livre et de l'utilisateur si nécessaire pour l'affichage
+    # TODO: Récupérer les infos du livre et de l\'utilisateur si nécessaire pour l\'affichage
 
     return jsonify([
         {
