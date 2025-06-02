@@ -1,10 +1,15 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import Book, Borrowing
 from sqlalchemy import not_
 
-notifications_bp = Blueprint("notifications", __name__)
+from .. import db
+from ..models import Student
 
-@notifications_bp.route("/api/notifications/me", methods=["GET"])
+notifications_bp = Blueprint("notifications", __name__, url_prefix='/api/notifications')
+
+@notifications_bp.route("/me", methods=["GET"])
+@jwt_required()
 def get_available_books():
     # Trouver les IDs des livres actuellement empruntés
     borrowed_book_ids = [b.book_id for b in Borrowing.query.filter_by(returned_at=None).all()]

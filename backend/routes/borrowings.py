@@ -1,26 +1,30 @@
 from flask import Blueprint, request, jsonify
-from models import db, Borrowing, Reservation
+from models import db, Borrowing, Reservation, Book, Student
 from datetime import datetime, timedelta
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 
 borrowings_bp = Blueprint("borrowings", __name__)
 
 @borrowings_bp.route("/api/borrowings/<int:book_id>", methods=["POST"])
+@jwt_required()
 def borrow_book(book_id):
-    user_id = request.json.get("user_id")
-    if not user_id:
-        return jsonify({"error": "user_id requis"}), 400
+    current_user_id = get_jwt_identity()
+    # user_id = request.json.get("user_id") # <-- Cette ligne ne sera plus nécessaire
+    # if not user_id:
+    #     return jsonify({"error": "user_id requis"}), 400
 
     borrowing = Borrowing(
-        user_id=user_id,
+        user_id=current_user_id,
         book_id=book_id,
         borrowed_at=datetime.utcnow(),
         returned_at=None
     )
     db.session.add(borrowing)
     db.session.commit()
-    return jsonify({"message": f"Livre {book_id} emprunté par utilisateur {user_id}"}), 201
+    return jsonify({"message": f"Livre {book_id} emprunté par utilisateur {current_user_id}"}), 201
 
 @borrowings_bp.route("/api/borrowings/status/<int:book_id>", methods=["GET"])
+@jwt_required()
 def borrowing_status(book_id):
     borrowing = Borrowing.query.filter_by(book_id=book_id, returned_at=None).first()
     if borrowing:
@@ -34,6 +38,7 @@ def borrowing_status(book_id):
         return jsonify({"borrowed": False})
 
 @borrowings_bp.route("/api/borrowings/<int:borrowing_id>/return", methods=["PUT"])
+@jwt_required()
 def return_book(borrowing_id):
     borrowing = Borrowing.query.get(borrowing_id)
 
@@ -99,27 +104,44 @@ def return_book(borrowing_id):
 
 # Endpoint pour lister les emprunts en retard
 @borrowings_bp.route("/api/borrowings/late", methods=["GET"])
+@jwt_required()
 def get_late_borrowings():
     # Calculer la date il y a 14 jours
     fourteen_days_ago = datetime.utcnow() - timedelta(days=14)
 
-    # Commencer la requête pour trouver les emprunts en retard
+    # Commencer la requête pour trouver les emprunts en retard non rendus
     query = Borrowing.query.filter(
         Borrowing.returned_at.is_(None), # Emprunt non rendu
         Borrowing.borrowed_at < fourteen_days_ago # Emprunté il y a plus de 14 jours
     )
 
-    # --- Ajouter le filtrage par user_id si le paramètre est présent ---
-    # Pour l'instant, on utilise user_id en paramètre pour les tests
-    # TODO: Remplacer par l'extraction du user_id depuis le token JWT
-    user_id = request.args.get("user_id")
-    if user_id:
+    # --- Utiliser get_jwt_identity() si aucun user_id n'est fourni en paramètre --- et commenter l'ancien code
+    requested_user_id = request.args.get("user_id")
+    if requested_user_id:
         # S'assurer que user_id est un entier si nécessaire, ou gérer l'erreur
         try:
-            user_id = int(user_id)
-            query = query.filter(Borrowing.user_id == user_id)
+            user_id_to_filter = int(requested_user_id)
         except ValueError:
             return jsonify({"error": "user_id doit être un entier"}), 400
+    else:\n        # Utiliser l'ID de l'utilisateur authentifié si user_id n'est pas fourni
+        user_id_to_filter = get_jwt_identity()
+        try:
+            # Assurez-vous que l'identité est un entier, car nos IDs sont des entiers
+            user_id_to_filter = int(user_id_to_filter)
+        except ValueError:
+             return jsonify({"error": "L'identité JWT n'est pas un ID utilisateur valide"}), 400
+
+    query = query.filter(Borrowing.user_id == user_id_to_filter)
+
+    # Ancienne logique de filtrage commentée/supprimée:
+    # user_id = request.args.get("user_id")
+    # if user_id:
+    #     try:
+    #         user_id = int(user_id)
+    #         query = query.filter(Borrowing.user_id == user_id)
+    #     except ValueError:
+    #         return jsonify({"error": "user_id doit être un entier"}), 400
+
     # --------------------------------------------------------------
 
     # Exécuter la requête filtrée

@@ -7,12 +7,14 @@ from routes.reservations import reservations_bp
 from routes.borrowings import borrowings_bp
 from routes.users import users_bp
 from routes.notifications import notifications_bp
+from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 db.init_app(app)
 migrate = Migrate(app, db)
+jwt = JWTManager(app)
 
 with app.app_context():
     db.create_all()
