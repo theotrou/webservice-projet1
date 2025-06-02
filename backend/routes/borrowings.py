@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models import db, Borrowing, Reservation
-from datetime import datetime
+from datetime import datetime, timedelta
 
 borrowings_bp = Blueprint("borrowings", __name__)
 
@@ -92,7 +92,33 @@ def return_book(borrowing_id):
         }), 200
     else:
         # Aucun réservataire en attente
-        db.session.commit() # Assure-toi que le commit de retour est toujours là
+        db.session.commit() # Assure-toi que le commit du retour est toujours là
         return jsonify({
             "message": f"Livre pour l'emprunt {borrowing_id} rendu avec succès. Aucun réservataire en attente."
         }), 200
+
+# Endpoint pour lister les emprunts en retard
+@borrowings_bp.route("/api/borrowings/late", methods=["GET"])
+def get_late_borrowings():
+    # Calculer la date il y a 14 jours
+    fourteen_days_ago = datetime.utcnow() - timedelta(days=14)
+
+    # Trouver les emprunts où returned_at est NULL et borrowed_at est avant il y a 14 jours
+    late_borrowings = Borrowing.query.filter(
+        Borrowing.returned_at.is_(None), # Emprunt non rendu
+        Borrowing.borrowed_at < fourteen_days_ago # Emprunté il y a plus de 14 jours
+    ).all()
+
+    # TODO: Ajouter le filtrage par user_id ici pour l'historique personnel plus tard
+    # TODO: Récupérer les infos du livre et de l'utilisateur si nécessaire pour l'affichage
+
+    return jsonify([
+        {
+            "id": b.id,
+            "user_id": b.user_id,
+            "book_id": b.book_id,
+            "borrowed_at": b.borrowed_at.isoformat(),
+            "returned_at": b.returned_at.isoformat() if b.returned_at else None
+        }
+        for b in late_borrowings
+    ])
