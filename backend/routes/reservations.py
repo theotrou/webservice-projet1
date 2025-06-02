@@ -30,3 +30,21 @@ def reserve_book(book_id):
     db.session.commit()
 
     return jsonify({"message": "Réservation créée", "position": position}), 201
+
+@reservations_bp.route("/api/reservations/me", methods=["GET"])
+def get_my_reservations():
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({"error": "user_id requis"}), 400
+
+    reservations = Reservation.query.filter_by(user_id=user_id).order_by(Reservation.created_at.desc()).all()
+    return jsonify([
+        {
+            "id": r.id,
+            "book_id": r.book_id,
+            "position": r.position,
+            "notified": r.notified,
+            "created_at": r.created_at.isoformat()
+        }
+        for r in reservations
+    ])
