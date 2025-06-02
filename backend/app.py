@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from routes.reservations import reservations_bp
 from routes.borrowings import borrowings_bp
 from routes.users import users_bp
+from routes.notifications import notifications_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -20,6 +21,7 @@ app.register_blueprint(books_bp)
 app.register_blueprint(reservations_bp)
 app.register_blueprint(borrowings_bp)
 app.register_blueprint(users_bp)
+app.register_blueprint(notifications_bp)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)
