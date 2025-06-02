@@ -11,7 +11,9 @@ function Home() {
     <>
         <ul>
             <li><Link to="/home">Home</Link></li>
-            <li><Link to="/books">Books</Link></li>   
+            <li><Link to="/books">Books</Link></li>
+            <li><Link to="/reservations">Mes Reservations</Link></li>
+
         </ul>
       <div>
         <a href="https://vite.dev" target="_blank">

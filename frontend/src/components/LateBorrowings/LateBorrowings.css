@@ -1,0 +1,19 @@
+.grid {
+  padding: 1rem;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th, td {
+  border: 1px solid #aaa;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+td:last-child {
+  color: red;
+  font-weight: bold;
+}
