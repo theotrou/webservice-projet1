@@ -10,6 +10,10 @@ def reserve_book(book_id):
     if not user_id:
         return jsonify({"error": "user_id requis"}), 400
 
+    existing_reservation = Reservation.query.filter_by(user_id=user_id, book_id=book_id, notified=False).first()
+    if existing_reservation:
+        return jsonify({"error": "Vous avez déjà une réservation en cours pour ce livre.", "reservation_id": existing_reservation.id}), 409
+
     # Vérifie que le livre est déjà emprunté
     borrowing = Borrowing.query.filter_by(book_id=book_id, returned_at=None).first()
     if not borrowing:
@@ -41,6 +45,22 @@ def get_my_reservations():
     return jsonify([
         {
             "id": r.id,
+            "book_id": r.book_id,
+            "position": r.position,
+            "notified": r.notified,
+            "created_at": r.created_at.isoformat()
+        }
+        for r in reservations
+    ])
+
+@reservations_bp.route("/api/reservations/book/<int:book_id>", methods=["GET"])
+def get_book_reservations(book_id):
+    reservations = Reservation.query.filter_by(book_id=book_id).order_by(Reservation.position.asc()).all()
+
+    return jsonify([
+        {
+            "id": r.id,
+            "user_id": r.user_id,
             "book_id": r.book_id,
             "position": r.position,
             "notified": r.notified,
