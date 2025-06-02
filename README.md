@@ -1,144 +1,121 @@
-# 📁 Squelette de projet : Flask + React + PostgreSQL
+# Bibliothèque ESME - Application de Gestion de Bibliothèque
 
-Ce projet constitue un **squelette de départ** pour construire une application web full-stack à base de :
+Une application moderne de gestion de bibliothèque universitaire permettant aux étudiants d'emprunter et réserver des livres en ligne. L'application gère automatiquement les listes d'attente et les notifications.
 
-* **Back-end** : Flask (Python)
-* **Front-end** : React (Vite)
-* **Base de données** : PostgreSQL
+## 🌐 URLs des services
 
-Le tout est prêt à être exécuté localement via **Docker** et **Docker Compose**.
+- *Frontend* : [http://localhost:5173](http://localhost:5173)
+- *Backend API* : [http://localhost:5009](http://localhost:5009)
 
----
+> *Note :* Le backend n'est pas accessible directement sur le port 5009. Utilisez les routes API listées ci-dessous.
 
-## ✅ Objectif de ce squelette
+## 💾 Base de données PostgreSQL
 
-Ce projet est destiné à servir de base pour votre propre développement.
+- *Hôte* : localhost
+- *Port* : 5432
+- *Utilisateur* : myuser
+- *Mot de passe* : mot_de_passe
+- *Base* : esme_inge
 
-**Ce que vous devez faire :**
+## 🌟 Fonctionnalités principales
 
-1. **Cloner** ce dépôt
-2. **Lancer l'application localement** (voir ci-dessous)
-3. **Construire votre projet** à partir de cette structure
+- *Gestion des emprunts* : Emprunt et retour de livres avec suivi automatique des retards
+- *Système de réservation* : File d'attente FIFO pour les livres indisponibles
+- *Notifications* : Alertes automatiques quand un livre réservé devient disponible
+- *Sécurité* : Authentification JWT pour protéger les routes sensibles
 
----
+## 🚀 Installation
 
-## ⚡ Prérequis
-
-Avant de commencer, assurez-vous d'avoir installé les outils suivants :
-
-### Pour Windows / MacOS / Linux :
-
-* [Docker Desktop](https://www.docker.com/products/docker-desktop) (inclut Docker + Docker Compose)
-* Git (pour cloner le projet)
-* **Make** (outil pour exécuter des commandes automatisées)
-
-  * Windows : installez via [Chocolatey](https://chocolatey.org/) : `choco install make`
-  * MacOS : inclus avec Xcode : `xcode-select --install`
-  * Linux : `sudo apt install make` (Debian/Ubuntu) ou `sudo dnf install make` (Fedora)
-
-Vous pouvez vérifier leur installation avec :
-
-```bash
-docker --version
-docker-compose --version
-git --version
-make --version
-```
-
----
-
-## 🔄 Installation et exécution locale
-
-### 1. Cloner le projet
-
-```bash
-git clone <url-du-repo>
-cd <nom-du-dossier>
-```
-
-### 2. Lancer l'application (backend, frontend et BDD)
-
-```bash
-make docker-build
-```
-
-ou directement :
-
-```bash
+bash
+# Démarrer l'application
 docker-compose up --build
-```
 
-### 3. Accéder à l'application
+# Arrêter l'application
+docker-compose down
 
-* Frontend : [http://localhost:3000](http://localhost:3000)
-* Backend API : [http://localhost:5009](http://localhost:5009)
-* Base de données PostgreSQL :
 
-  * Hôte : `localhost`
-  * Port : `5432`
-  * Utilisateur : `myuser`
-  * Mot de passe : `mot_de_passe`
-  * Base : `esme_inge`
+## 👥 Comptes de test
 
----
+| Email | ID |
+|-------|----|
+| dilshan@example.com | 1 |
+| paul@example.com | 2 |
 
-## 🧠 Structure du projet
+## 📚 Guide d'utilisation de l'API
 
-```
-full-app/
-├── backend/         # Application Flask + DB migrations
-├── frontend/        # Application React (Vite)
-├── docker-compose.yml
-├── Makefile         # Commandes utiles pour dev
-└── README.md
-```
+### 1. Authentification
+http
+POST /api/users/login
+{
+  "email": "user1@esme.fr"
+}
 
----
+> Conservez le token JWT reçu pour les requêtes suivantes
 
-## 🚀 Commandes utiles (via `make`)
+### 2. Gestion des livres
+http
+# Lister tous les livres disponibles
+GET /books
 
-```bash
-make docker-build   # Build et démarre tous les services
-make docker-up      # Démarre sans rebuild
-make docker-down    # Stoppe et supprime les conteneurs
-make db-init        # Init migrations (une seule fois)
-make db-migrate     # Crée une nouvelle migration
-make db-upgrade     # Applique les migrations
-make db-reset       # Supprime + recrée la base
-```
+# Ajouter un nouveau livre
+POST /books
+{
+  "title": "Titre du livre",
+  "author": "Nom de l'auteur"
+}
 
----
+# Voir les détails d'un livre
+GET /books/<id>
 
-## 🛠️ Conseils pour développement
 
-* Codez dans `backend/` et `frontend/`
-* Toute modification est automatiquement prise en compte au redémarrage des conteneurs
-* Si erreur base de données : vérifiez les migrations (`make db-upgrade`)
+### 3. Emprunts et retours
+http
+# Emprunter un livre
+POST /api/borrowings/<id>
 
----
+# Retourner un livre
+PUT /api/borrowings/<id>/return
 
-## 📊 Problèmes courants
+# Vérifier les retards
+GET /api/borrowings/late
 
-| Problème                           | Solution                                                                                   |
-| ---------------------------------- | ------------------------------------------------------------------------------------------ |
-| Frontend affiche 404 sur une route | NGINX est configuré pour rediriger vers `index.html`. Assurez-vous que le build est bon.   |
-| Erreur de connexion DB             | Vérifiez si la base est bien démarrée (`docker ps`) et que les migrations sont appliquées. |
-| Port déjà utilisé                  | Modifiez les ports dans `docker-compose.yml`.                                              |
 
----
+### 4. Réservations
+http
+# Réserver un livre indisponible
+POST /api/reservations/<id>
 
-## 🚫 Ce que vous ne devez pas modifier
+# Voir mes réservations
+GET /api/reservations/me
 
-* Ne changez pas le `docker-compose.yml` sauf si vous comprenez bien les impacts.
-* Ne modifiez pas le `Dockerfile` sans refaire les builds.
+# Voir la liste d'attente d'un livre
+GET /api/reservations/book/<id>
 
----
 
-## 📅 Prochaines étapes
+### 5. Notifications
+http
+# Voir les livres disponibles
+GET /api/notifications/me
 
-1. Définissez les routes de votre API Flask
-2. Construisez votre UI React
-3. Ajoutez vos tables et migrations si besoin
-4. Gérez l'authentification si nécessaire
 
-Bon développement ! 🚀
+## 🔒 Sécurité
+
+- Toutes les routes (sauf login) nécessitent un token JWT
+- Ajoutez l'en-tête Authorization: Bearer <token> à vos requêtes
+- Les utilisateurs ne peuvent voir que leurs propres données
+
+## 💡 Exemple de workflow
+
+1. Un étudiant se connecte avec son email
+2. Il consulte la liste des livres disponibles
+3. Si le livre est disponible, il peut l'emprunter
+4. Si le livre est emprunté, il peut le réserver
+5. Quand le livre est rendu, le premier de la liste d'attente est notifié
+6. L'étudiant peut voir ses retards éventuels
+
+## 🛠 Technologies utilisées
+
+- *Backend* : Flask (Python)
+- *Base de données* : PostgreSQL
+- *Authentification* : JWT
+- *Conteneurisation* : Docker
