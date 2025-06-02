@@ -103,13 +103,28 @@ def get_late_borrowings():
     # Calculer la date il y a 14 jours
     fourteen_days_ago = datetime.utcnow() - timedelta(days=14)
 
-    # Trouver les emprunts où returned_at est NULL et borrowed_at est avant il y a 14 jours
-    late_borrowings = Borrowing.query.filter(
+    # Commencer la requête pour trouver les emprunts en retard
+    query = Borrowing.query.filter(
         Borrowing.returned_at.is_(None), # Emprunt non rendu
         Borrowing.borrowed_at < fourteen_days_ago # Emprunté il y a plus de 14 jours
-    ).all()
+    )
 
-    # TODO: Ajouter le filtrage par user_id ici pour l'historique personnel plus tard
+    # --- Ajouter le filtrage par user_id si le paramètre est présent ---
+    # Pour l'instant, on utilise user_id en paramètre pour les tests
+    # TODO: Remplacer par l'extraction du user_id depuis le token JWT
+    user_id = request.args.get("user_id")
+    if user_id:
+        # S'assurer que user_id est un entier si nécessaire, ou gérer l'erreur
+        try:
+            user_id = int(user_id)
+            query = query.filter(Borrowing.user_id == user_id)
+        except ValueError:
+            return jsonify({"error": "user_id doit être un entier"}), 400
+    # --------------------------------------------------------------
+
+    # Exécuter la requête filtrée
+    late_borrowings = query.all()
+
     # TODO: Récupérer les infos du livre et de l'utilisateur si nécessaire pour l'affichage
 
     return jsonify([
