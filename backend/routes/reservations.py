@@ -68,31 +68,3 @@ def get_book_reservations(book_id):
         }
         for r in reservations
     ])
-
-# Endpoint pour consulter les notifications d'un utilisateur
-@reservations_bp.route("/api/notifications/me", methods=["GET"])
-def get_my_notifications():
-    # Pour l'instant, on utilise user_id en paramètre pour les tests
-    # TODO: Remplacer par l'extraction du user_id depuis le token JWT
-    user_id = request.args.get("user_id")
-    if not user_id:
-        return jsonify({"error": "user_id requis (ou token JWT manquant)"}), 400
-
-    # Récupérer les réservations pour cet utilisateur où notified est True
-    notifications = Reservation.query.filter_by(
-        user_id=user_id,
-        notified=True
-    ).order_by(Reservation.created_at.desc()).all() # On peut trier par date de création
-
-    return jsonify([
-        {
-            "id": n.id,
-            "book_id": n.book_id,
-            "user_id": n.user_id,
-            "position": n.position, # La position au moment de la notification (si pertinent)
-            "notified": n.notified,
-            "created_at": n.created_at.isoformat()
-            # On pourrait aussi ajouter des infos sur le livre ici en joignant les tables si nécessaire
-        }
-        for n in notifications
-    ])
